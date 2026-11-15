@@ -1,0 +1,73 @@
+# Prayer Times
+
+Prayer Times is a KDE Plasma 6 widget that updates daily prayer times from AlAdhan when connected and automatically falls back to local JavaScript/QML calculations when offline.
+
+## Features
+
+- Online prayer time updates based on coordinates, timezone, and Asr school.
+- A Gaza local preset based on the Egyptian General Authority of Survey method
+  (19.5° Fajr / 17.5° Isha) with local minute corrections.
+- Cached online times for continued use during temporary connection problems.
+- Offline astronomical prayer time calculations as an automatic fallback.
+- A configurable reminder before every obligatory prayer (30 minutes by default).
+- A second notification when the prayer time begins.
+- Compact panel view with the next prayer, time, and remaining countdown.
+- Full popup view with today's Fajr, Sunrise, Dhuhr, Asr, Maghrib, and Isha times.
+- Configurable city, latitude, longitude, timezone, Fajr angle, Isha angle, Asr method, and manual minute offsets.
+- Supports Shafi and Hanafi Asr calculation factors.
+- Optional panel icon and multiple panel display modes.
+- 12-hour AM/PM time format by default, with an optional 24-hour format.
+- Designed for KDE Plasma 6 light and dark themes.
+
+## Preview During Development
+
+```bash
+plasmoidviewer -a ./com.mo7ammed.prayertimes
+```
+
+## Package
+
+```bash
+./package.sh
+```
+
+This creates:
+
+```bash
+prayertimes-widget.tar.gz
+```
+
+## Install
+
+```bash
+kpackagetool6 --type Plasma/Applet --install prayertimes-widget.tar.gz
+```
+
+## Upgrade
+
+```bash
+kpackagetool6 --type Plasma/Applet --upgrade prayertimes-widget.tar.gz
+```
+
+## Remove
+
+```bash
+kpackagetool6 --type Plasma/Applet --remove com.mo7ammed.prayertimes
+```
+
+## Notes
+
+Online times are fetched only at startup, when the date or location settings change, or when the refresh button is pressed. The widget does not send location data other than the configured latitude, longitude, timezone, and Asr school required by the prayer-times request.
+
+Prayer-time calculation methods can differ from a local mosque or an official timetable. Use the offset settings to match your local mosque, ministry, or waqf timetable. When the online service is unavailable, the locally calculated times remain approximate astronomical estimates.
+
+The default configuration is set for Gaza:
+
+- City: Gaza
+- Latitude: 31.5017
+- Longitude: 34.4668
+- Timezone: Asia/Gaza
+- Calculation preset: Gaza local
+- Gaza preset angles: Fajr 19.5, Isha 17.5
+- Gaza local corrections: Asr -1 min, Maghrib +4 min, Isha +1 min
+- Asr factor: 1
