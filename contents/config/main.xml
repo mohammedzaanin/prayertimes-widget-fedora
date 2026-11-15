@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      https://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="General">
+        <entry name="city" type="String">
+            <default>Gaza</default>
+        </entry>
+        <entry name="latitude" type="Double">
+            <default>31.5017</default>
+        </entry>
+        <entry name="longitude" type="Double">
+            <default>34.4668</default>
+        </entry>
+        <entry name="timezone" type="String">
+            <default>Asia/Gaza</default>
+        </entry>
+        <entry name="fajrAngle" type="Double">
+            <default>18.0</default>
+        </entry>
+        <entry name="ishaAngle" type="Double">
+            <default>17.5</default>
+        </entry>
+        <entry name="asrFactor" type="Int">
+            <default>1</default>
+        </entry>
+        <entry name="fajrOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="dhuhrOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="asrOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="maghribOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="ishaOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <entry name="showIcon" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="panelMode" type="String">
+            <default>horizontal</default>
+        </entry>
+        <entry name="timeFormat" type="String">
+            <default>12h</default>
+        </entry>
+        <entry name="calculationPreset" type="String">
+            <default>gaza</default>
+        </entry>
+        <entry name="onlineEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="notificationsEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="reminderEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="prayerTimeNotificationEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="reminderMinutes" type="Int">
+            <default>30</default>
+        </entry>
+        <entry name="cachedOnlineDate" type="String">
+            <default></default>
+        </entry>
+        <entry name="cachedOnlineTomorrowDate" type="String">
+            <default></default>
+        </entry>
+        <entry name="cachedOnlineSignature" type="String">
+            <default></default>
+        </entry>
+        <entry name="cachedOnlineToday" type="String">
+            <default></default>
+        </entry>
+        <entry name="cachedOnlineTomorrow" type="String">
+            <default></default>
+        </entry>
+        <entry name="cachedOnlineMethod" type="String">
+            <default></default>
+        </entry>
+        <entry name="cachedOnlineUpdatedAt" type="String">
+            <default></default>
+        </entry>
+        <entry name="lastReminderNotification" type="String">
+            <default></default>
+        </entry>
+        <entry name="lastPrayerNotification" type="String">
+            <default></default>
+        </entry>
+    </group>
+</kcfg>
