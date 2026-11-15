@@ -34,19 +34,19 @@ plasmoidviewer -a ./com.mo7ammed.prayertimes
 This creates:
 
 ```bash
-prayertimes-widget.tar.gz
+prayertimes-widget.plasmoid
 ```
 
 ## Install
 
 ```bash
-kpackagetool6 --type Plasma/Applet --install prayertimes-widget.tar.gz
+kpackagetool6 --type Plasma/Applet --install prayertimes-widget.plasmoid
 ```
 
 ## Upgrade
 
 ```bash
-kpackagetool6 --type Plasma/Applet --upgrade prayertimes-widget.tar.gz
+kpackagetool6 --type Plasma/Applet --upgrade prayertimes-widget.plasmoid
 ```
 
 ## Remove
