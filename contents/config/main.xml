@@ -50,6 +50,12 @@
         <entry name="timeFormat" type="String">
             <default>12h</default>
         </entry>
+        <entry name="language" type="String">
+            <default>system</default>
+        </entry>
+        <entry name="themeMode" type="String">
+            <default>system</default>
+        </entry>
         <entry name="calculationPreset" type="String">
             <default>gaza</default>
         </entry>
@@ -67,6 +73,15 @@
         </entry>
         <entry name="reminderMinutes" type="Int">
             <default>30</default>
+        </entry>
+        <entry name="notificationSoundsEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="reminderSound" type="String">
+            <default>reminder-1.ogg</default>
+        </entry>
+        <entry name="prayerTimeSound" type="String">
+            <default>prayer-time.ogg</default>
         </entry>
         <entry name="cachedOnlineDate" type="String">
             <default></default>

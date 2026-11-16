@@ -9,11 +9,13 @@
         ],
         "Category": "Date and Time",
         "Description": "Prayer times with online updates, offline fallback, and notifications for KDE Plasma 6.",
+        "Description[ar]": "ودجت مواقيت الصلاة مع التحديث عبر الإنترنت والحساب دون اتصال والإشعارات لـ KDE Plasma 6.",
         "Icon": "clock",
         "Id": "com.mo7ammed.prayertimes",
         "License": "MIT",
         "Name": "Prayer Times",
-        "Version": "1.3.0",
+        "Name[ar]": "مواقيت الصلاة",
+        "Version": "1.5.0",
         "Website": ""
     },
     "X-Plasma-API-Minimum-Version": "6.0"

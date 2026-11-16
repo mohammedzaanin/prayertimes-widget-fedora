@@ -9,6 +9,8 @@ Item {
     property string title: ""
     property string time: "--:--"
     property bool highlighted: false
+    property bool rtl: false
+    property string fontFamily: "Cairo"
     property color textColor: Kirigami.Theme.textColor
     property color mutedColor: Kirigami.Theme.disabledTextColor
     property color accentColor: Kirigami.Theme.highlightColor
@@ -29,15 +31,16 @@ Item {
         anchors.leftMargin: 10
         anchors.rightMargin: 10
         spacing: 10
-        layoutDirection: Qt.RightToLeft
+        layoutDirection: root.rtl ? Qt.RightToLeft : Qt.LeftToRight
 
         PlasmaComponents.Label {
             id: label
             text: root.title
             Layout.fillWidth: true
-            horizontalAlignment: Text.AlignRight
+            horizontalAlignment: root.rtl ? Text.AlignRight : Text.AlignLeft
             elide: Text.ElideRight
             color: root.highlighted ? root.textColor : root.mutedColor
+            font.family: root.fontFamily
             font.weight: root.highlighted ? Font.DemiBold : Font.Normal
         }
 
@@ -45,8 +48,9 @@ Item {
             text: root.time
             horizontalAlignment: Text.AlignLeft
             color: root.highlighted ? root.textColor : root.mutedColor
-            font.family: "monospace"
+            font.family: root.fontFamily
             font.weight: root.highlighted ? Font.DemiBold : Font.Normal
+            LayoutMirroring.enabled: false
         }
     }
 }

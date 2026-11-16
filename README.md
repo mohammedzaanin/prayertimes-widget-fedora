@@ -11,13 +11,16 @@ Prayer Times is a KDE Plasma 6 widget that updates daily prayer times from AlAdh
 - Offline astronomical prayer time calculations as an automatic fallback.
 - A configurable reminder before every obligatory prayer (30 minutes by default).
 - A second notification when the prayer time begins.
+- Bundled selectable sounds for reminders and prayer-time notifications, with previews in settings.
 - Compact panel view with the next prayer, time, and remaining countdown.
 - Full popup view with today's Fajr, Sunrise, Dhuhr, Asr, Maghrib, and Isha times.
 - Configurable city, latitude, longitude, timezone, Fajr angle, Isha angle, Asr method, and manual minute offsets.
 - Supports Shafi and Hanafi Asr calculation factors.
 - Optional panel icon and multiple panel display modes.
 - 12-hour AM/PM time format by default, with an optional 24-hour format.
-- Designed for KDE Plasma 6 light and dark themes.
+- System-following, dark, and light appearance modes with live KDE theme integration.
+- Arabic and English interfaces with automatic RTL/LTR layout switching.
+- A scrollable popup with an always-visible prayer-time source footer.
 
 ## Preview During Development
 

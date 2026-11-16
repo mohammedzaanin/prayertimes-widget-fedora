@@ -1,16 +1,24 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
+import QtMultimedia
 import org.kde.plasma.plasmoid
 import org.kde.kirigami as Kirigami
 import org.kde.notification
 import "../code/prayerCalc.js" as PrayerCalc
+import "../code/translations.js" as Translations
 
 PlasmoidItem {
     id: root
 
     readonly property var prayerKeys: ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+    readonly property string uiLanguage: Translations.resolveLanguage(
+                                             Plasmoid.configuration.language || "system",
+                                             Qt.locale().name)
+    readonly property bool isRtl: uiLanguage === "ar"
     property var calculation: null
     property string errorText: ""
-    property string sourceText: "حساب محلي"
+    property string sourceText: ""
     property bool onlineBusy: false
     property string onlineError: ""
     property double lastOnlineAttempt: 0
@@ -26,6 +34,28 @@ PlasmoidItem {
     function configNumber(value, fallback) {
         var parsed = Number(value)
         return isFinite(parsed) ? parsed : fallback
+    }
+
+    function translate(key) {
+        return Translations.text(uiLanguage, key)
+    }
+
+    function safeSoundFile(fileName, fallback) {
+        var allowed = ["reminder-1.ogg", "reminder-2.ogg", "prayer-time.ogg"]
+        return allowed.indexOf(String(fileName)) >= 0 ? String(fileName) : fallback
+    }
+
+    function soundUrl(fileName, fallback) {
+        return Qt.resolvedUrl("../sounds/" + safeSoundFile(fileName, fallback))
+    }
+
+    function playNotificationSound(isReminder) {
+        if (!Plasmoid.configuration.notificationSoundsEnabled) {
+            return
+        }
+        var effect = isReminder ? reminderSoundEffect : prayerTimeSoundEffect
+        effect.stop()
+        effect.play()
     }
 
     function settingsObject() {
@@ -95,10 +125,12 @@ PlasmoidItem {
             cfg.fajrAngle, cfg.ishaAngle, cfg.asrFactor,
             cfg.fajrOffset, cfg.dhuhrOffset, cfg.asrOffset,
             cfg.maghribOffset, cfg.ishaOffset,
-            cfg.showIcon, cfg.panelMode, cfg.timeFormat, cfg.calculationPreset,
+            cfg.showIcon, cfg.panelMode, cfg.timeFormat, cfg.language, cfg.themeMode,
+            cfg.calculationPreset,
             cfg.onlineEnabled, cfg.notificationsEnabled,
             cfg.reminderEnabled, cfg.prayerTimeNotificationEnabled,
-            cfg.reminderMinutes
+            cfg.reminderMinutes, cfg.notificationSoundsEnabled,
+            cfg.reminderSound, cfg.prayerTimeSound
         ])
     }
 
@@ -212,21 +244,20 @@ PlasmoidItem {
     function updateSourceText(usingOnline) {
         var isGazaPreset = settingsObject().calculationPreset === "gaza"
         if (usingOnline) {
-            var method = Plasmoid.configuration.cachedOnlineMethod || "المصدر التلقائي"
+            var method = Plasmoid.configuration.cachedOnlineMethod || translate("automaticSource")
             sourceText = onlineError.length > 0
-                    ? (isGazaPreset ? "توقيت غزة المحلي المحفوظ • تعذر التحديث"
-                                    : "بيانات الإنترنت المحفوظة • تعذر التحديث")
-                    : (isGazaPreset ? "المصدر: توقيت غزة المحلي"
-                                    : "المصدر: الإنترنت • " + method)
+                    ? translate(isGazaPreset ? "sourceGazaCachedFailed"
+                                             : "sourceInternetCachedFailed")
+                    : (isGazaPreset ? translate("sourceGaza")
+                                    : Translations.format(uiLanguage, "sourceInternet", [method]))
         } else if (!Plasmoid.configuration.onlineEnabled) {
-            sourceText = isGazaPreset ? "المصدر: توقيت غزة المحلي • حساب دون إنترنت"
-                                      : "المصدر: حساب محلي"
+            sourceText = translate(isGazaPreset ? "sourceGazaOffline" : "sourceLocal")
         } else if (onlineBusy) {
-            sourceText = "حساب محلي • جارٍ تحديث الإنترنت…"
+            sourceText = translate("sourceLocalUpdating")
         } else if (onlineError.length > 0) {
-            sourceText = "حساب محلي • تعذر الاتصال بالإنترنت"
+            sourceText = translate("sourceLocalNoInternet")
         } else {
-            sourceText = "المصدر: حساب محلي"
+            sourceText = translate("sourceLocal")
         }
     }
 
@@ -240,7 +271,7 @@ PlasmoidItem {
             updateSourceText(onlineCalculation !== null)
         } catch (error) {
             calculation = null
-            errorText = "تعذر حساب المواقيت. تحقق من الإحداثيات والإعدادات."
+            errorText = translate("calculationError")
             updateSourceText(false)
             console.warn("Prayer Times:", error)
         }
@@ -346,7 +377,7 @@ PlasmoidItem {
             try {
                 finishOnlineRequest(generation, isTomorrow, JSON.parse(request.responseText), "")
             } catch (error) {
-                finishOnlineRequest(generation, isTomorrow, null, "تعذر قراءة استجابة خدمة المواقيت")
+                finishOnlineRequest(generation, isTomorrow, null, translate("responseError"))
             }
         }
         request.open("GET", url)
@@ -391,7 +422,8 @@ PlasmoidItem {
     }
 
     function timeForDate(date) {
-        return PrayerCalc.formatTimeForZone(date, use12HourTime(), settingsObject().timezone)
+        return PrayerCalc.formatTimeForZone(date, use12HourTime(),
+                                            settingsObject().timezone, uiLanguage)
     }
 
     function timeFor(key) {
@@ -413,7 +445,8 @@ PlasmoidItem {
     }
 
     function nextName() {
-        return calculation && calculation.next ? calculation.next.name : "--"
+        return calculation && calculation.next
+                ? Translations.prayerName(uiLanguage, calculation.next.key) : "--"
     }
 
     function nextTime() {
@@ -433,7 +466,8 @@ PlasmoidItem {
     function formattedDate() {
         var now = new Date()
         try {
-            return now.toLocaleDateString(Qt.locale(), Locale.LongFormat)
+            return now.toLocaleDateString(Qt.locale(uiLanguage === "ar" ? "ar" : "en_US"),
+                                          Locale.LongFormat)
         } catch (error) {
             return now.toDateString()
         }
@@ -474,25 +508,29 @@ PlasmoidItem {
 
             var difference = prayerTime.getTime() - now
             var marker = notificationKey(prayerKey, prayerTime)
-            var prayerName = PrayerCalc.arabicName(prayerKey)
+            var prayerName = Translations.prayerName(uiLanguage, prayerKey)
 
             if (cfg.reminderEnabled && difference > 0
                     && difference <= reminderMilliseconds
                     && difference > Math.max(0, reminderMilliseconds - windowMilliseconds)
                     && cfg.lastReminderNotification !== marker) {
                 saveNotificationMarker(true, marker)
-                reminderNotification.text = "متبقي " + reminderMinutes + " دقيقة على صلاة "
-                        + prayerName + " (" + timeForDate(prayerTime) + ")"
+                reminderNotification.text = Translations.format(
+                            uiLanguage, "reminderText",
+                            [reminderMinutes, prayerName, timeForDate(prayerTime)])
                 reminderNotification.sendEvent()
+                playNotificationSound(true)
             }
 
             if (cfg.prayerTimeNotificationEnabled && difference <= 0
                     && difference > -windowMilliseconds
                     && cfg.lastPrayerNotification !== marker) {
                 saveNotificationMarker(false, marker)
-                prayerTimeNotification.text = "حان الآن موعد صلاة " + prayerName
-                        + " (" + timeForDate(prayerTime) + ")"
+                prayerTimeNotification.text = Translations.format(
+                            uiLanguage, "prayerTimeText",
+                            [prayerName, timeForDate(prayerTime)])
                 prayerTimeNotification.sendEvent()
+                playNotificationSound(false)
             }
         }
     }
@@ -502,6 +540,8 @@ PlasmoidItem {
     switchHeight: Kirigami.Units.gridUnit * 5
 
     compactRepresentation: CompactView {
+        language: root.uiLanguage
+        themeMode: Plasmoid.configuration.themeMode || "system"
         prayerName: root.nextName()
         prayerTime: root.nextTime()
         remaining: root.remainingText()
@@ -511,7 +551,11 @@ PlasmoidItem {
     }
 
     fullRepresentation: FullView {
-        city: Plasmoid.configuration.city || "Gaza"
+        language: root.uiLanguage
+        themeMode: Plasmoid.configuration.themeMode || "system"
+        city: root.uiLanguage === "ar"
+              && String(Plasmoid.configuration.city || "Gaza").toLowerCase() === "gaza"
+              ? root.translate("cityGaza") : (Plasmoid.configuration.city || "Gaza")
         currentDate: root.formattedDate()
         nextPrayerName: root.nextName()
         nextPrayerTime: root.nextTime()
@@ -528,16 +572,34 @@ PlasmoidItem {
         id: reminderNotification
         componentName: "plasma_workspace"
         eventId: "notification"
-        title: "تذكير بموعد الصلاة"
+        title: root.translate("reminderTitle")
         iconName: "clock"
+        hints: ({ "suppress-sound": true })
     }
 
     Notification {
         id: prayerTimeNotification
         componentName: "plasma_workspace"
         eventId: "notification"
-        title: "حان وقت الصلاة"
+        title: root.translate("prayerTimeTitle")
         iconName: "clock"
+        hints: ({ "suppress-sound": true })
+    }
+
+    MediaPlayer {
+        id: reminderSoundEffect
+        source: root.soundUrl(Plasmoid.configuration.reminderSound, "reminder-1.ogg")
+        audioOutput: AudioOutput {
+            volume: 1.0
+        }
+    }
+
+    MediaPlayer {
+        id: prayerTimeSoundEffect
+        source: root.soundUrl(Plasmoid.configuration.prayerTimeSound, "prayer-time.ogg")
+        audioOutput: AudioOutput {
+            volume: 1.0
+        }
     }
 
     Timer {
@@ -554,7 +616,7 @@ PlasmoidItem {
             }
             root.onlineRequestGeneration += 1
             root.onlineBusy = false
-            root.onlineError = "انتهت مهلة الاتصال"
+            root.onlineError = root.translate("connectionTimeout")
             root.activeRequests = []
             root.refreshDisplay()
         }

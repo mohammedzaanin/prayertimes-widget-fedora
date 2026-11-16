@@ -1,9 +1,14 @@
 import QtQuick
+import QtQuick.Layouts
 import QtQuick.Controls as Controls
+import QtMultimedia
 import org.kde.kirigami as Kirigami
+import "../code/translations.js" as Translations
 
 Controls.ScrollView {
     id: page
+
+    font.family: "Cairo"
 
     clip: true
     contentWidth: availableWidth
@@ -13,6 +18,11 @@ Controls.ScrollView {
     bottomPadding: Kirigami.Units.largeSpacing
     Controls.ScrollBar.horizontal.policy: Controls.ScrollBar.AlwaysOff
     Controls.ScrollBar.vertical.policy: Controls.ScrollBar.AsNeeded
+    LayoutMirroring.enabled: uiLanguage === "ar"
+    LayoutMirroring.childrenInherit: true
+
+    readonly property string uiLanguage: Translations.resolveLanguage(
+                                             languageSelector.mode, Qt.locale().name)
 
     property string title: ""
     property alias cfg_city: cityField.text
@@ -30,12 +40,17 @@ Controls.ScrollView {
     property alias cfg_showIcon: showIcon.checked
     property alias cfg_panelMode: panelMode.mode
     property alias cfg_timeFormat: timeFormat.mode
+    property alias cfg_language: languageSelector.mode
+    property alias cfg_themeMode: themeSelector.mode
     property alias cfg_calculationPreset: calculationPreset.mode
     property alias cfg_onlineEnabled: onlineEnabled.checked
     property alias cfg_notificationsEnabled: notificationsEnabled.checked
     property alias cfg_reminderEnabled: reminderEnabled.checked
     property alias cfg_prayerTimeNotificationEnabled: prayerTimeNotificationEnabled.checked
     property alias cfg_reminderMinutes: reminderMinutes.value
+    property alias cfg_notificationSoundsEnabled: notificationSoundsEnabled.checked
+    property alias cfg_reminderSound: reminderSound.mode
+    property alias cfg_prayerTimeSound: prayerTimeSound.mode
 
     // Plasma injects each setting's default value into the configuration page.
     property var cfg_cityDefault
@@ -53,12 +68,17 @@ Controls.ScrollView {
     property var cfg_showIconDefault
     property var cfg_panelModeDefault
     property var cfg_timeFormatDefault
+    property var cfg_languageDefault
+    property var cfg_themeModeDefault
     property var cfg_calculationPresetDefault
     property var cfg_onlineEnabledDefault
     property var cfg_notificationsEnabledDefault
     property var cfg_reminderEnabledDefault
     property var cfg_prayerTimeNotificationEnabledDefault
     property var cfg_reminderMinutesDefault
+    property var cfg_notificationSoundsEnabledDefault
+    property var cfg_reminderSoundDefault
+    property var cfg_prayerTimeSoundDefault
 
     // Internal persisted state is not shown, but the configuration loader still
     // provides it when this page is created.
@@ -85,20 +105,97 @@ Controls.ScrollView {
         return String(Number(value));
     }
 
+    function translate(key) {
+        return Translations.text(uiLanguage, key);
+    }
+
+    function soundChoices() {
+        return [
+            { text: translate("soundReminderOne"), value: "reminder-1.ogg" },
+            { text: translate("soundReminderTwo"), value: "reminder-2.ogg" },
+            { text: translate("soundPrayerTime"), value: "prayer-time.ogg" }
+        ];
+    }
+
+    function soundIndex(fileName) {
+        if (fileName === "reminder-2.ogg") {
+            return 1;
+        }
+        if (fileName === "prayer-time.ogg") {
+            return 2;
+        }
+        return 0;
+    }
+
+    function previewSound(fileName) {
+        previewPlayer.stop();
+        previewPlayer.source = Qt.resolvedUrl("../sounds/" + fileName);
+        previewPlayer.play();
+    }
+
+    MediaPlayer {
+        id: previewPlayer
+        audioOutput: AudioOutput {
+            volume: 1.0
+        }
+    }
+
     Kirigami.FormLayout {
         id: form
         width: page.availableWidth
 
+        Kirigami.Heading {
+            Kirigami.FormData.isSection: true
+            text: page.translate("appearanceSection")
+            level: 4
+        }
+
+        Controls.ComboBox {
+            id: languageSelector
+            property string mode: "system"
+            Kirigami.FormData.label: page.translate("languageLabel")
+            model: [
+                { text: page.translate("systemLanguage"), value: "system" },
+                { text: page.translate("arabic"), value: "ar" },
+                { text: page.translate("english"), value: "en" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            onActivated: mode = currentValue
+            onModeChanged: currentIndex = mode === "ar" ? 1 : (mode === "en" ? 2 : 0)
+        }
+
+        Controls.ComboBox {
+            id: themeSelector
+            property string mode: "system"
+            Kirigami.FormData.label: page.translate("themeLabel")
+            model: [
+                { text: page.translate("systemTheme"), value: "system" },
+                { text: page.translate("darkTheme"), value: "dark" },
+                { text: page.translate("lightTheme"), value: "light" }
+            ]
+            textRole: "text"
+            valueRole: "value"
+            onActivated: mode = currentValue
+            onModeChanged: currentIndex = mode === "dark" ? 1 : (mode === "light" ? 2 : 0)
+        }
+
+        Kirigami.Heading {
+            Kirigami.FormData.isSection: true
+            text: page.translate("prayerSettingsSection")
+            level: 4
+        }
+
         Controls.TextField {
             id: cityField
-            Kirigami.FormData.label: "City:"
+            Kirigami.FormData.label: page.translate("cityLabel")
             placeholderText: "Gaza"
         }
 
         Controls.TextField {
             id: latitudeField
             property real value: 31.5017
-            Kirigami.FormData.label: "Latitude:"
+            Kirigami.FormData.label: page.translate("latitudeLabel")
             text: String(value)
             inputMethodHints: Qt.ImhFormattedNumbersOnly
             validator: DoubleValidator {
@@ -113,7 +210,7 @@ Controls.ScrollView {
         Controls.TextField {
             id: longitudeField
             property real value: 34.4668
-            Kirigami.FormData.label: "Longitude:"
+            Kirigami.FormData.label: page.translate("longitudeLabel")
             text: String(value)
             inputMethodHints: Qt.ImhFormattedNumbersOnly
             validator: DoubleValidator {
@@ -127,17 +224,17 @@ Controls.ScrollView {
 
         Controls.TextField {
             id: timezoneField
-            Kirigami.FormData.label: "Timezone:"
+            Kirigami.FormData.label: page.translate("timezoneLabel")
             placeholderText: "Asia/Gaza"
         }
 
         Controls.ComboBox {
             id: calculationPreset
             property string mode: "gaza"
-            Kirigami.FormData.label: "Calculation method:"
+            Kirigami.FormData.label: page.translate("calculationMethodLabel")
             model: [
-                { text: "Gaza local (19.5° / 17.5°)", value: "gaza" },
-                { text: "Automatic by location", value: "automatic" }
+                { text: page.translate("gazaLocal"), value: "gaza" },
+                { text: page.translate("automaticByLocation"), value: "automatic" }
             ]
             textRole: "text"
             valueRole: "value"
@@ -147,14 +244,14 @@ Controls.ScrollView {
 
         Controls.CheckBox {
             id: onlineEnabled
-            Kirigami.FormData.label: "Online times:"
-            text: "Update automatically when connected"
+            Kirigami.FormData.label: page.translate("onlineTimesLabel")
+            text: page.translate("onlineUpdate")
         }
 
         Controls.TextField {
             id: fajrAngleField
             property real value: 18.0
-            Kirigami.FormData.label: "Fajr angle:"
+            Kirigami.FormData.label: page.translate("fajrAngleLabel")
             enabled: calculationPreset.mode !== "gaza"
             text: String(value)
             inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -170,7 +267,7 @@ Controls.ScrollView {
         Controls.TextField {
             id: ishaAngleField
             property real value: 17.5
-            Kirigami.FormData.label: "Isha angle:"
+            Kirigami.FormData.label: page.translate("ishaAngleLabel")
             enabled: calculationPreset.mode !== "gaza"
             text: String(value)
             inputMethodHints: Qt.ImhFormattedNumbersOnly
@@ -186,14 +283,14 @@ Controls.ScrollView {
         Controls.ComboBox {
             id: asrMethod
             property int factor: 1
-            Kirigami.FormData.label: "Asr method:"
+            Kirigami.FormData.label: page.translate("asrMethodLabel")
             model: [
                 {
-                    text: "Shafi",
+                    text: page.translate("shafi"),
                     value: 1
                 },
                 {
-                    text: "Hanafi",
+                    text: page.translate("hanafi"),
                     value: 2
                 }
             ]
@@ -205,7 +302,7 @@ Controls.ScrollView {
 
         Controls.SpinBox {
             id: fajrOffset
-            Kirigami.FormData.label: "Fajr offset (min):"
+            Kirigami.FormData.label: page.translate("fajrOffsetLabel")
             from: -120
             to: 120
             editable: true
@@ -213,7 +310,7 @@ Controls.ScrollView {
 
         Controls.SpinBox {
             id: dhuhrOffset
-            Kirigami.FormData.label: "Dhuhr offset (min):"
+            Kirigami.FormData.label: page.translate("dhuhrOffsetLabel")
             from: -120
             to: 120
             editable: true
@@ -221,7 +318,7 @@ Controls.ScrollView {
 
         Controls.SpinBox {
             id: asrOffset
-            Kirigami.FormData.label: "Asr offset (min):"
+            Kirigami.FormData.label: page.translate("asrOffsetLabel")
             from: -120
             to: 120
             editable: true
@@ -229,7 +326,7 @@ Controls.ScrollView {
 
         Controls.SpinBox {
             id: maghribOffset
-            Kirigami.FormData.label: "Maghrib offset (min):"
+            Kirigami.FormData.label: page.translate("maghribOffsetLabel")
             from: -120
             to: 120
             editable: true
@@ -237,7 +334,7 @@ Controls.ScrollView {
 
         Controls.SpinBox {
             id: ishaOffset
-            Kirigami.FormData.label: "Isha offset (min):"
+            Kirigami.FormData.label: page.translate("ishaOffsetLabel")
             from: -120
             to: 120
             editable: true
@@ -245,21 +342,21 @@ Controls.ScrollView {
 
         Controls.CheckBox {
             id: showIcon
-            Kirigami.FormData.label: "Panel icon:"
-            text: "Show mosque icon"
+            Kirigami.FormData.label: page.translate("panelIconLabel")
+            text: page.translate("showMosqueIcon")
         }
 
         Controls.ComboBox {
             id: timeFormat
             property string mode: "12h"
-            Kirigami.FormData.label: "Time format:"
+            Kirigami.FormData.label: page.translate("timeFormatLabel")
             model: [
                 {
-                    text: "12-hour AM/PM",
+                    text: page.translate("twelveHour"),
                     value: "12h"
                 },
                 {
-                    text: "24-hour",
+                    text: page.translate("twentyFourHour"),
                     value: "24h"
                 }
             ]
@@ -272,18 +369,18 @@ Controls.ScrollView {
         Controls.ComboBox {
             id: panelMode
             property string mode: "horizontal"
-            Kirigami.FormData.label: "Panel layout:"
+            Kirigami.FormData.label: page.translate("panelLayoutLabel")
             model: [
                 {
-                    text: "Horizontal",
+                    text: page.translate("horizontal"),
                     value: "horizontal"
                 },
                 {
-                    text: "Compact",
+                    text: page.translate("compact"),
                     value: "compact"
                 },
                 {
-                    text: "Vertical",
+                    text: page.translate("vertical"),
                     value: "vertical"
                 }
             ]
@@ -303,26 +400,26 @@ Controls.ScrollView {
 
         Kirigami.Heading {
             Kirigami.FormData.isSection: true
-            text: "الإشعارات"
+            text: page.translate("notificationsSection")
             level: 4
         }
 
         Controls.CheckBox {
             id: notificationsEnabled
-            Kirigami.FormData.label: "التنبيهات:"
-            text: "تفعيل إشعارات الصلاة"
+            Kirigami.FormData.label: page.translate("notificationsLabel")
+            text: page.translate("enablePrayerNotifications")
         }
 
         Controls.CheckBox {
             id: reminderEnabled
-            Kirigami.FormData.label: "التذكير:"
-            text: "إشعار قبل موعد الصلاة"
+            Kirigami.FormData.label: page.translate("reminderLabel")
+            text: page.translate("notifyBeforePrayer")
             enabled: notificationsEnabled.checked
         }
 
         Controls.SpinBox {
             id: reminderMinutes
-            Kirigami.FormData.label: "قبل الصلاة (دقيقة):"
+            Kirigami.FormData.label: page.translate("reminderMinutesLabel")
             from: 1
             to: 120
             editable: true
@@ -331,9 +428,68 @@ Controls.ScrollView {
 
         Controls.CheckBox {
             id: prayerTimeNotificationEnabled
-            Kirigami.FormData.label: "وقت الصلاة:"
-            text: "إشعار عند دخول وقت الصلاة"
+            Kirigami.FormData.label: page.translate("prayerTimeLabel")
+            text: page.translate("notifyAtPrayerTime")
             enabled: notificationsEnabled.checked
+        }
+
+        Controls.CheckBox {
+            id: notificationSoundsEnabled
+            Kirigami.FormData.label: page.translate("soundsLabel")
+            text: page.translate("enableNotificationSounds")
+            enabled: notificationsEnabled.checked
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: page.translate("reminderSoundLabel")
+            enabled: notificationsEnabled.checked && reminderEnabled.checked
+                     && notificationSoundsEnabled.checked
+
+            Controls.ComboBox {
+                id: reminderSound
+                property string mode: "reminder-1.ogg"
+                Layout.fillWidth: true
+                model: page.soundChoices()
+                textRole: "text"
+                valueRole: "value"
+                onActivated: mode = currentValue
+                onModeChanged: currentIndex = page.soundIndex(mode)
+            }
+
+            Controls.Button {
+                icon.name: "media-playback-start"
+                text: ""
+                Accessible.name: page.translate("previewSound")
+                Controls.ToolTip.text: page.translate("previewSound")
+                Controls.ToolTip.visible: hovered
+                onClicked: page.previewSound(reminderSound.mode)
+            }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: page.translate("prayerSoundLabel")
+            enabled: notificationsEnabled.checked && prayerTimeNotificationEnabled.checked
+                     && notificationSoundsEnabled.checked
+
+            Controls.ComboBox {
+                id: prayerTimeSound
+                property string mode: "prayer-time.ogg"
+                Layout.fillWidth: true
+                model: page.soundChoices()
+                textRole: "text"
+                valueRole: "value"
+                onActivated: mode = currentValue
+                onModeChanged: currentIndex = page.soundIndex(mode)
+            }
+
+            Controls.Button {
+                icon.name: "media-playback-start"
+                text: ""
+                Accessible.name: page.translate("previewSound")
+                Controls.ToolTip.text: page.translate("previewSound")
+                Controls.ToolTip.visible: hovered
+                onClicked: page.previewSound(prayerTimeSound.mode)
+            }
         }
     }
 }

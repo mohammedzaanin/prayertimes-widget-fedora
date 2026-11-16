@@ -9,20 +9,56 @@ Item {
     property string prayerName: "--"
     property string prayerTime: "--:--"
     property string remaining: "--:--"
+    property string language: "en"
+    property string themeMode: "system"
+    readonly property bool isRtl: language === "ar"
+    readonly property string fontFamily: "Cairo"
+    readonly property bool followsSystemTheme: themeMode === "system"
+    readonly property bool lightPalette: themeMode === "light"
+                                         || (followsSystemTheme
+                                             && colorLuminance(Kirigami.Theme.backgroundColor) > 0.55)
+    readonly property color panelColor: followsSystemTheme
+                                        ? Kirigami.Theme.backgroundColor
+                                        : (lightPalette ? "#f8fafc" : "#1b2433")
+    readonly property color hoverColor: followsSystemTheme
+                                        ? Kirigami.Theme.alternateBackgroundColor
+                                        : (lightPalette ? "#e2e8f0" : "#243044")
+    readonly property color borderColor: followsSystemTheme
+                                         ? alphaColor(Kirigami.Theme.disabledTextColor, 0.38)
+                                         : (lightPalette ? "#cbd5e1" : "#334155")
+    readonly property color accentColor: followsSystemTheme
+                                         ? Kirigami.Theme.highlightColor
+                                         : (lightPalette ? "#0284c7" : "#38bdf8")
+    readonly property color textColor: followsSystemTheme
+                                       ? Kirigami.Theme.textColor
+                                       : (lightPalette ? "#0f172a" : "#f8fafc")
+    readonly property color mutedTextColor: followsSystemTheme
+                                            ? Kirigami.Theme.disabledTextColor
+                                            : (lightPalette ? "#475569" : "#cbd5e1")
+    readonly property color goldColor: lightPalette ? "#a16207" : "#f8c35d"
+    readonly property color separatorColor: lightPalette ? "#64748b" : "#64748b"
     property bool showIcon: true
     property string panelMode: "horizontal"
     property bool hovered: false
 
     signal activated()
 
+    function colorLuminance(colorValue) {
+        return 0.2126 * colorValue.r + 0.7152 * colorValue.g + 0.0722 * colorValue.b
+    }
+
+    function alphaColor(colorValue, opacity) {
+        return Qt.rgba(colorValue.r, colorValue.g, colorValue.b, opacity)
+    }
+
     function prayerClockText() {
-        var parts = root.prayerTime.split(" ")
-        return parts.length > 1 ? parts[0] : root.prayerTime
+        var parts = root.prayerTime.trim().split(/\s+/)
+        return parts.length > 0 ? parts[0] : root.prayerTime
     }
 
     function prayerPeriodText() {
-        var parts = root.prayerTime.split(" ")
-        return parts.length > 1 ? parts[1] : ""
+        var parts = root.prayerTime.trim().split(/\s+/)
+        return parts.length > 1 ? parts.slice(1).join(" ") : ""
     }
 
     implicitWidth: panelMode === "vertical" ? 82 : panelMode === "compact" ? 220 : 230
@@ -34,8 +70,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 6
-        color: root.hovered ? "#243044" : "#1b2433"
-        border.color: "#334155"
+        color: root.hovered ? root.hoverColor : root.panelColor
+        border.color: root.borderColor
         border.width: 1
     }
 
@@ -45,22 +81,19 @@ Item {
         width: Math.min(parent.width - 16, 78)
         height: 3
         radius: 2
-        color: "#38bdf8"
+        color: root.accentColor
         visible: root.panelMode !== "vertical"
     }
 
     RowLayout {
-        anchors.centerIn: parent
-        width: Math.max(0, parent.width - 1)
-        height: Math.max(24, parent.height - 8)
-        spacing: 4
-        layoutDirection: Qt.RightToLeft
+        anchors.fill: parent
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        anchors.topMargin: 4
+        anchors.bottomMargin: 4
+        spacing: 6
+        layoutDirection: root.isRtl ? Qt.RightToLeft : Qt.LeftToRight
         visible: root.panelMode !== "vertical"
-
-        Item {
-            Layout.fillWidth: true
-            Layout.minimumWidth: 0
-        }
 
         Image {
             source: "../images/mosque-svgrepo-com.svg"
@@ -74,43 +107,50 @@ Item {
 
         PlasmaComponents.Label {
             text: root.prayerName
-            Layout.minimumWidth: 34
-            Layout.maximumWidth: 44
-            horizontalAlignment: Text.AlignLeft
+            Layout.minimumWidth: 44
+            Layout.fillWidth: true
+            horizontalAlignment: root.isRtl ? Text.AlignRight : Text.AlignLeft
             elide: Text.ElideRight
+            font.family: root.fontFamily
+            font.pixelSize: 14
             font.weight: Font.DemiBold
-            color: "#f8fafc"
+            color: root.textColor
         }
 
-        PlasmaComponents.Label {
-            text: root.prayerClockText()
-            horizontalAlignment: Text.AlignLeft
-            elide: Text.ElideRight
-            Layout.preferredWidth: 50
-            font.family: "monospace"
-            font.weight: Font.DemiBold
-            color: "#f8c35d"
-            font.pointSize: Math.max(8, Kirigami.Theme.smallFont.pointSize)
-        }
+        RowLayout {
+            spacing: 2
+            layoutDirection: Qt.LeftToRight
+            LayoutMirroring.enabled: false
 
-        PlasmaComponents.Label {
-            text: root.prayerPeriodText()
-            visible: text.length > 0
-            horizontalAlignment: Text.AlignLeft
-            Layout.preferredWidth: 22
-            font.family: "monospace"
-            font.weight: Font.DemiBold
-            color: "#f8c35d"
-            font.pointSize: Math.max(8, Kirigami.Theme.smallFont.pointSize)
+            PlasmaComponents.Label {
+                text: root.isRtl ? root.prayerPeriodText() : root.prayerClockText()
+                visible: text.length > 0
+                font.family: root.fontFamily
+                font.pixelSize: 14
+                font.weight: Font.DemiBold
+                color: root.goldColor
+                LayoutMirroring.enabled: false
+            }
+
+            PlasmaComponents.Label {
+                text: root.isRtl ? root.prayerClockText() : root.prayerPeriodText()
+                visible: text.length > 0
+                font.family: root.fontFamily
+                font.pixelSize: 14
+                font.weight: Font.DemiBold
+                color: root.goldColor
+                LayoutMirroring.enabled: false
+            }
         }
 
         PlasmaComponents.Label {
             text: "|"
             horizontalAlignment: Text.AlignHCenter
             Layout.preferredWidth: 6
-            color: "#64748b"
+            color: root.separatorColor
+            font.family: root.fontFamily
             font.weight: Font.DemiBold
-            font.pointSize: Math.max(8, Kirigami.Theme.smallFont.pointSize)
+            font.pixelSize: 13
         }
 
         PlasmaComponents.Label {
@@ -118,13 +158,9 @@ Item {
             horizontalAlignment: Text.AlignLeft
             elide: Text.ElideRight
             Layout.preferredWidth: 44
-            color: "#cbd5e1"
-            font.pointSize: Math.max(8, Kirigami.Theme.smallFont.pointSize)
-        }
-
-        Item {
-            Layout.fillWidth: true
-            Layout.minimumWidth: 0
+            color: root.mutedTextColor
+            font.family: root.fontFamily
+            font.pixelSize: 13
         }
     }
 
@@ -146,12 +182,15 @@ Item {
         }
 
         PlasmaComponents.Label {
-            text: root.prayerName + "  " + root.prayerTime
+            text: root.isRtl
+                  ? root.prayerName + "  \u2066" + root.prayerTime + "\u2069"
+                  : root.prayerName + "  " + root.prayerTime
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
+            font.family: root.fontFamily
             font.weight: Font.DemiBold
-            color: "#f8fafc"
+            color: root.textColor
         }
 
         PlasmaComponents.Label {
@@ -159,7 +198,8 @@ Item {
             Layout.fillWidth: true
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
-            color: "#cbd5e1"
+            color: root.mutedTextColor
+            font.family: root.fontFamily
             font.pointSize: Math.max(7, Kirigami.Theme.smallFont.pointSize)
         }
     }

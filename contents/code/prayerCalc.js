@@ -282,7 +282,7 @@ function formatTime(date, use12Hour) {
     return pad(hours) + ":" + minutes;
 }
 
-function formatTimeForZone(date, use12Hour, timezone) {
+function formatTimeForZone(date, use12Hour, timezone, language) {
     if (!date || !isFinite(date.getTime())) {
         return "--:--";
     }
@@ -306,7 +306,11 @@ function formatTimeForZone(date, use12Hour, timezone) {
             }
             var result = hour + ":" + (values.minute || "--");
             if (use12Hour && values.dayPeriod) {
-                result += " " + values.dayPeriod;
+                var period = values.dayPeriod;
+                if (language === "ar") {
+                    period = period.toUpperCase() === "AM" ? "ص" : "م";
+                }
+                result += " " + period;
             }
             return result;
         } catch (e) {
@@ -314,7 +318,11 @@ function formatTimeForZone(date, use12Hour, timezone) {
         }
     }
 
-    return formatTime(date, use12Hour);
+    var fallback = formatTime(date, use12Hour);
+    if (use12Hour && language === "ar") {
+        fallback = fallback.replace(" AM", " ص").replace(" PM", " م");
+    }
+    return fallback;
 }
 
 function formatRemaining(milliseconds) {
