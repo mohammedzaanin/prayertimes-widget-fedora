@@ -1,5 +1,9 @@
 # Prayer Times
 
+<p align="center">
+  <img src="store-assets/prayer-times-logo.png" alt="Prayer Times logo" width="160">
+</p>
+
 Prayer Times is a KDE Plasma 6 widget that updates daily prayer times from AlAdhan when connected and automatically falls back to local JavaScript/QML calculations when offline.
 
 ## Features
@@ -21,6 +25,18 @@ Prayer Times is a KDE Plasma 6 widget that updates daily prayer times from AlAdh
 - System-following, dark, and light appearance modes with live KDE theme integration.
 - Arabic and English interfaces with automatic RTL/LTR layout switching.
 - A scrollable popup with an always-visible prayer-time source footer.
+
+## Screenshots
+
+| Arabic — dark | English — dark |
+| --- | --- |
+| ![Arabic dark interface](store-assets/arabic-dark.png) | ![English dark interface](store-assets/english-dark.png) |
+
+| English — light | English — blue |
+| --- | --- |
+| ![English light interface](store-assets/english-light.png) | ![English blue interface](store-assets/english-blue.png) |
+
+![Compact panel view](store-assets/compact-panel.png)
 
 ## Preview During Development
 
@@ -47,10 +63,10 @@ KDE Store update process.
 
 ## Install from KDE Store
 
-Once the widget is published, install it from Plasma's **Add Widgets** →
-**Get New Widgets** dialog. Installing from the store lets KDE offer subsequent
-versions without cloning this repository or running the installation commands
-again.
+Install [Prayer Times from KDE Store](https://store.kde.org/p/2382054/) or find
+it from Plasma's **Add Widgets** → **Get New Widgets** dialog. Installing from
+the store lets KDE offer subsequent versions without cloning this repository or
+running the installation commands again.
 
 ## Install
 
