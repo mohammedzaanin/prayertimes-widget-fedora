@@ -40,6 +40,18 @@ This creates:
 prayertimes-widget.plasmoid
 ```
 
+Every push and pull request is also packaged by GitHub Actions. Pushing a tag
+such as `v1.5.1` creates a GitHub Release when the tag matches the version in
+`metadata.json`. See [RELEASING.md](RELEASING.md) for the complete release and
+KDE Store update process.
+
+## Install from KDE Store
+
+Once the widget is published, install it from Plasma's **Add Widgets** →
+**Get New Widgets** dialog. Installing from the store lets KDE offer subsequent
+versions without cloning this repository or running the installation commands
+again.
+
 ## Install
 
 ```bash

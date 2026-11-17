@@ -15,8 +15,9 @@
         "License": "MIT",
         "Name": "Prayer Times",
         "Name[ar]": "مواقيت الصلاة",
-        "Version": "1.5.0",
-        "Website": ""
+        "Version": "1.5.1",
+        "Website": "https://github.com/mohammedzaanin/prayertimes-widget-fedora",
+        "BugReportUrl": "https://github.com/mohammedzaanin/prayertimes-widget-fedora/issues"
     },
     "X-Plasma-API-Minimum-Version": "6.0"
 }
